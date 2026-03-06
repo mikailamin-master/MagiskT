@@ -1,0 +1,66 @@
+package pro.magisk.ui.module
+
+import android.os.Bundle
+import android.view.View
+import pro.magisk.R
+import pro.magisk.arch.BaseFragment
+import pro.magisk.arch.viewModel
+import pro.magisk.core.utils.MediaStoreUtils.displayName
+import pro.magisk.databinding.FragmentModuleMd2Binding
+import rikka.recyclerview.addEdgeSpacing
+import rikka.recyclerview.addInvalidateItemDecorationsObserver
+import rikka.recyclerview.addItemSpacing
+import rikka.recyclerview.fixEdgeEffect
+import pro.magisk.core.R as CoreR
+
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import pro.magisk.ui.home.RebootMenu
+import androidx.core.view.MenuProvider
+import pro.magisk.core.Info
+
+class ModuleFragment : BaseFragment<FragmentModuleMd2Binding>(), MenuProvider {
+
+    override val layoutRes = R.layout.fragment_module_md2
+    override val viewModel by viewModel<ModuleViewModel>()
+
+    override fun onStart() {
+        super.onStart()
+        activity?.title = resources.getString(CoreR.string.modules)
+        viewModel.data.observe(this) {
+            it ?: return@observe
+            val displayName = runCatching { it.displayName }.getOrNull() ?: return@observe
+            viewModel.requestInstallLocalModule(it, displayName)
+            viewModel.data.value = null
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.moduleList.apply {
+            addEdgeSpacing(top = R.dimen.l_50, bottom = R.dimen.l1)
+            addItemSpacing(R.dimen.l1, R.dimen.l_50, R.dimen.l1)
+            fixEdgeEffect()
+            post { addInvalidateItemDecorationsObserver() }
+        }
+    }
+    
+    override fun onCreateMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_home_md2, menu)
+        if (!Info.isRooted)
+            menu.removeItem(R.id.action_reboot)
+    }
+
+    override fun onMenuItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_reboot -> activity?.let { RebootMenu.inflate(it).show() }
+            else -> return super.onOptionsItemSelected(item)
+        }
+        return true
+    }
+
+    override fun onPreBind(binding: FragmentModuleMd2Binding) = Unit
+
+}
