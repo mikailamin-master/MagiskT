@@ -60,7 +60,7 @@ fix_env() {
 # $2 = boot partition
 direct_install() {
   echo "- Flashing new boot image"
-  flash_image $1/new-boot.img $2
+  flash_image $1/patched_boot.img $2
   case $? in
     1)
       echo "! Insufficient partition size"
@@ -72,7 +72,7 @@ direct_install() {
       ;;
   esac
 
-  rm -f $1/new-boot.img
+  rm -f $1/patched_boot.img
   fix_env $1
   run_migrations
 

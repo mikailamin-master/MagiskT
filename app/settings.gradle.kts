@@ -7,5 +7,5 @@ dependencyResolutionManagement {
         maven("https://jitpack.io")
     }
 }
-rootProject.name = "MagiskPro"
+rootProject.name = "MagiskT"
 include(":apk", ":core", ":shared", ":stub", ":test")

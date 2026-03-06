@@ -435,7 +435,7 @@ install_magisk() {
   . ./boot_patch.sh "$BOOTIMAGE"
 
   ui_print "- Flashing new boot image"
-  flash_image new-boot.img "$BOOTIMAGE"
+  flash_image patched_boot.img "$BOOTIMAGE"
   case $? in
     1)
       abort "! Insufficient partition size"
@@ -446,7 +446,7 @@ install_magisk() {
   esac
 
   ./magiskboot cleanup
-  rm -f new-boot.img
+  rm -f patched_boot.img
 
   run_migrations
 }
@@ -455,12 +455,12 @@ sign_chromeos() {
   ui_print "- Signing ChromeOS boot image"
 
   echo > empty
-  ./chromeos/futility vbutil_kernel --pack new-boot.img.signed \
+  ./chromeos/futility vbutil_kernel --pack patched_boot.img.signed \
   --keyblock ./chromeos/kernel.keyblock --signprivate ./chromeos/kernel_data_key.vbprivk \
-  --version 1 --vmlinuz new-boot.img --config empty --arch arm --bootloader empty --flags 0x1
+  --version 1 --vmlinuz patched_boot.img --config empty --arch arm --bootloader empty --flags 0x1
 
-  rm -f empty new-boot.img
-  mv new-boot.img.signed new-boot.img
+  rm -f empty patched_boot.img
+  mv patched_boot.img.signed patched_boot.img
 }
 
 remove_system_su() {

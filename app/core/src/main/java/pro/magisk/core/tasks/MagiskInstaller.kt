@@ -307,9 +307,9 @@ abstract class MagiskInstallImpl protected constructor(
                         "chmod -R 755 .",
                         "./magiskboot unpack boot.img",
                         "./magiskboot repack boot.img",
-                        "cat new-boot.img > boot.img",
+                        "cat patched_boot.img > boot.img",
                         "./magiskboot cleanup",
-                        "rm -f new-boot.img",
+                        "rm -f patched_boot.img",
                         "cd /").sh()
                     boot.copyTo(tarOut)
                 }
@@ -500,7 +500,7 @@ abstract class MagiskInstallImpl protected constructor(
 
         // Output file
         try {
-            val newBoot = installDir.getChildFile("new-boot.img")
+            val newBoot = installDir.getChildFile("patched_boot.img")
             if (bootItem != null) {
                 bootItem.file = newBoot
                 bootItem.copyTo(outStream as TarArchiveOutputStream)
@@ -531,7 +531,7 @@ abstract class MagiskInstallImpl protected constructor(
     }
 
     private fun patchBoot(): Boolean {
-        val newBoot = installDir.getChildFile("new-boot.img")
+        val newBoot = installDir.getChildFile("patched_boot.img")
         if (!useRootDir) {
             // Create output files before hand
             newBoot.createNewFile()

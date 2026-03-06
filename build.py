@@ -767,7 +767,7 @@ def set_build_abis(abis: set[str]):
 
 
 def load_config():
-    commit_hash = "ProEdition"
+    commit_hash = "MT"
 
     # Default values
     config["version"] = commit_hash

@@ -27,7 +27,7 @@ class HomeFragment : BaseFragment<FragmentHomeMd2Binding>(), MenuProvider {
 
     override fun onStart() {
         super.onStart()
-        activity?.setTitle(CoreR.string.section_home)
+        activity?.setTitle("MagiskT")
         DownloadEngine.observeProgress(this, viewModel::onProgressUpdate)
     }
 
