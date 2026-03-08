@@ -1,6 +1,6 @@
-version=MT
-
 keyStore=key.jks
 keyStorePass=magisksu
 keyAlias=magiskpro
 keyPass=magisksu
+
+version=MT

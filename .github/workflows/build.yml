@@ -10,38 +10,53 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
+
         strategy:
             matrix:
                 build_type: [release]
 
         steps:
-            # 1️⃣ Checkout
+            # 1️⃣ Checkout (faster clone)
             - name: Checkout
               uses: actions/checkout@v4
               with:
                   submodules: recursive
                   fetch-depth: 1
 
-            # 2️⃣ Install ccache
-            - name: Install ccache
-              run: sudo apt-get update && sudo apt-get install -y ccache
+            # 2️⃣ Install packages
+            - name: Install dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y ccache python3 python3-pip
 
-            # 3️⃣ Cache ccache
+            # 3️⃣ Setup Python cache
+            - name: Cache pip
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/pip
+                  key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
+                  restore-keys: |
+                      pip-${{ runner.os }}-
+
+            # 4️⃣ Setup ccache
+            - name: Setup ccache
+              run: |
+                  mkdir -p ~/.ccache
+                  echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
+                  echo "CCACHE_MAXSIZE=3G" >> $GITHUB_ENV
+                  echo "/usr/lib/ccache" >> $GITHUB_PATH
+                  ccache --max-size=3G
+
+            # 5️⃣ Cache ccache
             - name: Cache ccache
               uses: actions/cache@v4
               with:
                   path: ~/.ccache
-                  key: ccache-${{ runner.os }}-${{ hashFiles('**/*.java','**/*.kt','**/*.c','**/*.cpp') }}
+                  key: ccache-${{ runner.os }}-${{ hashFiles('**/*.c','**/*.cpp','**/*.h') }}
                   restore-keys: |
                       ccache-${{ runner.os }}-
 
-            # 4️⃣ Setup ccache env
-            - name: Setup ccache env
-              run: |
-                  echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
-                  echo "CCACHE_MAXSIZE=2G" >> $GITHUB_ENV
-
-            # 5️⃣ Cache Gradle
+            # 6️⃣ Cache Gradle (important for speed)
             - name: Cache Gradle
               uses: actions/cache@v4
               with:
@@ -52,13 +67,33 @@ jobs:
                   restore-keys: |
                       gradle-${{ runner.os }}-
 
-            # 6️⃣ Setup environment (Magisk-specific)
+            # 7️⃣ Setup Java (needed for Android build)
+            - name: Setup Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: 17
+                  cache: gradle
+
+            # 8️⃣ Setup Magisk build environment
             - name: Setup environment
               uses: ./.github/actions/setup
               with:
                   is-asset-build: true
 
-            # 7️⃣ Build depending on matrix
+            # 9️⃣ Replace version
+            - name: Replace version
+              run: |
+                  if [ "${{ matrix.build_type }}" = "release" ]; then
+                      sed -i 's/^version=.*/version=MTR/' config.prop
+                  else
+                      sed -i 's/^version=.*/version=MTD/' config.prop
+                  fi
+
+                  echo "Updated config.prop:"
+                  cat config.prop
+
+            # 🔟 Build
             - name: Build Magisk
               run: |
                   if [ "${{ matrix.build_type }}" = "release" ]; then
@@ -67,11 +102,15 @@ jobs:
                       python build.py -v all
                   fi
 
-            # 8️⃣ Stop Gradle daemon
+            # 11️⃣ Stop Gradle
             - name: Stop Gradle Daemon
               run: ./app/gradlew --stop
 
-            # 9️⃣ Upload APK
+            # 12️⃣ Show ccache stats
+            - name: ccache stats
+              run: ccache -s
+
+            # 13️⃣ Upload artifact
             - name: Upload Magisk artifact
               uses: actions/upload-artifact@v4
               with:
