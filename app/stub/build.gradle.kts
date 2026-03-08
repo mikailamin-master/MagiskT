@@ -14,26 +14,41 @@ android {
 
     val canary = !Config.version.contains(".")
     val base = "https://github.com/mikailamin-master/MagiskPro/releases/download/"
-    val url = base + "build/app-release.apk"
-    val canaryUrl = base + "canary-${Config.versionCode}/"
+    val urlRelease = base + "build/app-release.apk"
+    val urlDebug = base + "build/app-debug.apk"
+    val canaryUrl = base + "canary_build/"
 
     defaultConfig {
         applicationId = "pro.magisk"
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("String", "APK_URL", "\"$url\"")
+
         buildConfigField("int", "STUB_VERSION", Config.stubVersion)
     }
 
     buildTypes {
         release {
-            if (canary) buildConfigField("String", "APK_URL", "\"${canaryUrl}app-release.apk\"")
+            val apkUrl = if (canary) {
+                "${canaryUrl}app-release.apk"
+            } else {
+                urlRelease
+            }
+
+            buildConfigField("String", "APK_URL", "\"$apkUrl\"")
+
             proguardFiles("proguard-rules.pro")
             isMinifyEnabled = true
             isShrinkResources = false
         }
+
         debug {
-            if (canary) buildConfigField("String", "APK_URL", "\"${canaryUrl}app-debug.apk\"")
+            val apkUrl = if (canary) {
+                "${canaryUrl}app-debug.apk"
+            } else {
+                urlDebug
+            }
+
+            buildConfigField("String", "APK_URL", "\"$apkUrl\"")
         }
     }
 

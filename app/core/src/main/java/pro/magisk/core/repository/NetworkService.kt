@@ -45,15 +45,14 @@ class NetworkService(
         findRelease { it.versionCode == version }.asInfo()
     }
 
-    // Keep going through all release pages until we find a match
     private suspend inline fun findRelease(predicate: (Release) -> Boolean): Release? {
         var page = 1
         while (true) {
             val response = api.fetchReleases(page = page)
             val releases = response.body() ?: throw HttpException(response)
-            // Remove all non Magisk releases
-            releases.removeAll { it.tag[0] != 'v' && !it.tag.startsWith("canary") }
-            // Make sure it's sorted correctly
+            // Remove all non-Magisk releases
+            releases.removeAll { it.tag != "build" && it.tag != "canary_build" }
+            // Sort descending by createdTime
             releases.sortByDescending { it.createdTime }
             releases.find(predicate)?.let { return it }
             if (response.headers()["link"]?.contains("rel=\"next\"", ignoreCase = true) == true) {
@@ -65,46 +64,43 @@ class NetworkService(
     }
 
     private inline fun Release?.asInfo(
-        selector: (ReleaseAssets) -> Boolean = {
-            // Default selector picks the non-debug APK
-            it.name.run { endsWith(".apk") && !contains("debug") }
-        }): UpdateInfo {
-        return if (this == null) UpdateInfo()
-        else if (tag[0] == 'v') asPublicInfo(selector)
-        else asCanaryInfo(selector)
+        selector: (ReleaseAssets) -> Boolean = { it.name == "app-release.apk" || it.name == "app-debug.apk" }
+    ): UpdateInfo {
+        if (this == null) return UpdateInfo()
+        return when (tag) {
+            "build" -> asPublicInfo(selector)
+            "canary_build" -> asCanaryInfo(selector)
+            else -> UpdateInfo()
+        }
     }
 
     private inline fun Release.asPublicInfo(selector: (ReleaseAssets) -> Boolean): UpdateInfo {
-        val version = tag.drop(1)
-        val date = dateFormat.format(createdTime)
+        val releaseApk = assets.find { it.name == "app-release.apk" }?.url
+        val debugApk = assets.find { it.name == "app-debug.apk" }?.url
         return UpdateInfo(
-            version = version,
+            version = tag,
             versionCode = versionCode,
-            link = assets.find(selector)!!.url,
-            note = "## $date $name\n\n$body"
-        )
-    }
-
-    private inline fun Release.asCanaryInfo(selector: (ReleaseAssets) -> Boolean): UpdateInfo {
-        return UpdateInfo(
-            version = name.substring(8, 16),
-            versionCode = versionCode,
-            link = assets.find(selector)!!.url,
+            link = releaseApk,
+            debugLink = debugApk,
             note = "## $name\n\n$body"
         )
     }
 
-    // Version number: debug == beta >= stable
+    private inline fun Release.asCanaryInfo(selector: (ReleaseAssets) -> Boolean): UpdateInfo {
+        val releaseApk = assets.find { it.name == "app-release.apk" }?.url
+        val debugApk = assets.find { it.name == "app-debug.apk" }?.url
+        return UpdateInfo(
+            version = tag,
+            versionCode = versionCode,
+            link = releaseApk,
+            debugLink = debugApk,
+            note = "## $name\n\n$body"
+        )
+    }
 
-    // Find the latest non-prerelease
-    private suspend fun fetchStableUpdate() = api.fetchLatestRelease().asInfo()
-
-    // Find the latest release, regardless whether it's prerelease
-    private suspend fun fetchBetaUpdate() = findRelease { true }.asInfo()
-
-    private suspend fun fetchDebugUpdate() =
-        findRelease { true }.asInfo { it.name == "app-debug.apk" }
-
+    private suspend fun fetchStableUpdate() = findRelease { it.tag == "build" }.asInfo()
+    private suspend fun fetchBetaUpdate() = findRelease { it.tag == "canary_build" }.asInfo()
+    private suspend fun fetchDebugUpdate() = findRelease { it.tag == "build" }.asInfo { it.name == "app-debug.apk" }
     private suspend fun fetchCustomUpdate(url: String): UpdateInfo {
         val info = raw.fetchUpdateJson(url).magisk
         return info.let { it.copy(note = raw.fetchString(it.note)) }
@@ -130,7 +126,6 @@ class NetworkService(
         }
     }
 
-    // Fetch files
     suspend fun fetchFile(url: String) = wrap { raw.fetchFile(url) }
     suspend fun fetchString(url: String) = wrap { raw.fetchString(url) }
     suspend fun fetchModuleJson(url: String) = wrap { raw.fetchModuleJson(url) }
