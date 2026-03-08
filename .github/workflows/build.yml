@@ -16,29 +16,24 @@ jobs:
                 build_type: [release]
 
         steps:
-            # 1️⃣ Checkout code
             - name: Checkout
               uses: actions/checkout@v4
               with:
                   submodules: recursive
                   fetch-depth: 1
 
-            # 2️⃣ Install dependencies
             - name: Install dependencies
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y ccache python3 python3-pip
+                  sudo apt-get install -y ccache python3 python3-pip gh
 
-            # 3️⃣ Cache pip
             - name: Cache pip
               uses: actions/cache@v4
               with:
                   path: ~/.cache/pip
                   key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
-                  restore-keys: |
-                      pip-${{ runner.os }}-
+                  restore-keys: pip-${{ runner.os }}-
 
-            # 4️⃣ Setup ccache
             - name: Setup ccache
               run: |
                   mkdir -p ~/.ccache
@@ -47,16 +42,13 @@ jobs:
                   echo "/usr/lib/ccache" >> $GITHUB_PATH
                   ccache --max-size=3G
 
-            # 5️⃣ Cache ccache
             - name: Cache ccache
               uses: actions/cache@v4
               with:
                   path: ~/.ccache
                   key: ccache-${{ runner.os }}-${{ hashFiles('**/*.c','**/*.cpp','**/*.h') }}
-                  restore-keys: |
-                      ccache-${{ runner.os }}-
+                  restore-keys: ccache-${{ runner.os }}-
 
-            # 6️⃣ Cache Gradle
             - name: Cache Gradle
               uses: actions/cache@v4
               with:
@@ -64,10 +56,8 @@ jobs:
                       ~/.gradle/caches
                       ~/.gradle/wrapper
                   key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties') }}
-                  restore-keys: |
-                      gradle-${{ runner.os }}-
+                  restore-keys: gradle-${{ runner.os }}-
 
-            # 7️⃣ Setup Java
             - name: Setup Java
               uses: actions/setup-java@v4
               with:
@@ -75,13 +65,11 @@ jobs:
                   java-version: 17
                   cache: gradle
 
-            # 8️⃣ Setup custom environment
             - name: Setup environment
               uses: ./.github/actions/setup
               with:
                   is-asset-build: true
 
-            # 9️⃣ Replace version
             - name: Replace version
               run: |
                   if [ "${{ matrix.build_type }}" = "release" ]; then
@@ -90,7 +78,6 @@ jobs:
                       sed -i 's/^version=.*/version=MTD/' config.prop
                   fi
 
-            # 🔟 Build Magisk
             - name: Build Magisk
               run: |
                   if [ "${{ matrix.build_type }}" = "release" ]; then
@@ -99,39 +86,40 @@ jobs:
                       python build.py -v all
                   fi
 
-            # 1️⃣1️⃣ Stop Gradle
             - name: Stop Gradle
               run: ./app/gradlew --stop
 
-            # 1️⃣2️⃣ Upload artifact
             - name: Upload artifact
               uses: actions/upload-artifact@v4
               with:
                   name: magisk_${{ matrix.build_type }}
                   path: ${{ matrix.build_type == 'release' && 'out/app-release.apk' || 'out/app-debug.apk' }}
 
-            # 1️⃣3️⃣ Delete old release if exists
             - name: Delete old release
-              uses: softprops/action-gh-release@v2
-              with:
-                  tag_name: build
-                  remove_assets: true
-                  retries: 0
-              env:
-                  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-              continue-on-error: true
+              run: |
+                  echo "${{ secrets.PAT_TOKEN }}" | gh auth login --with-token
+                  gh release delete build --yes || echo "No existing release"
 
-            # 1️⃣4️⃣ Create / replace release
             - name: Create Release
-              uses: softprops/action-gh-release@v2
-              with:
-                  tag_name: build
-                  name: Build
-                  draft: false
-                  prerelease: false
-                  files: |
-                      ${{ matrix.build_type == 'release' && 'out/app-release.apk' || 'out/app-debug.apk' }}
-                  retries: 0
-              env:
-                  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-              continue-on-error: true
+              run: |
+                  echo "${{ secrets.PAT_TOKEN }}" | gh auth login --with-token
+
+                  COMMIT_ID=$(git rev-parse --short HEAD)
+                  BRANCH_NAME=${GITHUB_REF#refs/heads/}
+                  BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S %Z")
+                  BUILD_TYPE=${{ matrix.build_type }}
+
+                  DESCRIPTION="Automated build of MagiskT\n
+Branch: $BRANCH_NAME\n
+Commit: $COMMIT_ID\n
+Build type: $BUILD_TYPE\n
+Build time: $BUILD_TIME\n
+Triggered by: $GITHUB_ACTOR\n
+Repository: $GITHUB_REPOSITORY"
+
+                  gh release create build \
+                      ${{ matrix.build_type == 'release' && 'out/app-release.apk' || 'out/app-debug.apk' }} \
+                      --title "Build" \
+                      --notes "$DESCRIPTION" \
+                      --draft=false \
+                      --prerelease=false
