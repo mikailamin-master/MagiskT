@@ -116,6 +116,7 @@ jobs:
               with:
                   tag_name: build
                   remove_assets: true
+                  retries: 1
               env:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
               continue-on-error: true
@@ -133,3 +134,4 @@ jobs:
                   retries: 1
               env:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+              continue-on-error: true
