@@ -95,31 +95,30 @@ jobs:
                   name: magisk_${{ matrix.build_type }}
                   path: ${{ matrix.build_type == 'release' && 'out/app-release.apk' || 'out/app-debug.apk' }}
 
-            - name: Delete old release
-              run: |
-                  echo "${{ secrets.PAT_TOKEN }}" | gh auth login --with-token
-                  gh release delete build --yes || echo "No existing release"
-
-            - name: Create Release
+            - name: GitHub Release
               run: |
                   echo "${{ secrets.PAT_TOKEN }}" | gh auth login --with-token
 
+                  # Decide release tag and file
+                  if [ "${{ matrix.build_type }}" = "release" ]; then
+                      TAG_NAME="build"
+                      APK_FILE="out/app-release.apk"
+                  else
+                      TAG_NAME="canary_build"
+                      APK_FILE="out/app-debug.apk"
+                  fi
+
+                  # Delete old release if exists
+                  gh release delete $TAG_NAME --yes || echo "No existing release to delete"
+
+                  # Create new release
                   COMMIT_ID=$(git rev-parse --short HEAD)
                   BRANCH_NAME=${GITHUB_REF#refs/heads/}
                   BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S %Z")
-                  BUILD_TYPE=${{ matrix.build_type }}
+                  DESCRIPTION="Automated build of MagiskT\nBranch: $BRANCH_NAME\!Commit: $COMMIT_ID\nBuild type: ${{ matrix.build_type }}\nBuild time: $BUILD_TIME\nTriggered by: $GITHUB_ACTOR\nRepository: $GITHUB_REPOSITORY"
 
-                  DESCRIPTION="Automated build of MagiskT\n
-Branch: $BRANCH_NAME\n
-Commit: $COMMIT_ID\n
-Build type: $BUILD_TYPE\n
-Build time: $BUILD_TIME\n
-Triggered by: $GITHUB_ACTOR\n
-Repository: $GITHUB_REPOSITORY"
-
-                  gh release create build \
-                      ${{ matrix.build_type == 'release' && 'out/app-release.apk' || 'out/app-debug.apk' }} \
-                      --title "Build" \
+                  gh release create $TAG_NAME $APK_FILE \
+                      --title "MagiskT $TAG_NAME" \
                       --notes "$DESCRIPTION" \
                       --draft=false \
                       --prerelease=false
