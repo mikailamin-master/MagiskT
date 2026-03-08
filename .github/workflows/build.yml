@@ -130,5 +130,6 @@ jobs:
                   prerelease: false
                   files: |
                       ${{ matrix.build_type == 'release' && 'out/app-release.apk' || 'out/app-debug.apk' }}
+                  retries: 1
               env:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
