@@ -6,8 +6,10 @@
     <style name="WidgetFoundation.Toolbar" parent="Widget.MaterialComponents.Toolbar.Surface">
         <item name="titleTextAppearance">@style/AppearanceFoundation.Title</item>
         <item name="titleTextColor">?colorOnSurface</item>
+        <item name="titleCentered">true</item>
         <item name="subtitleTextAppearance">@style/AppearanceFoundation.Caption</item>
         <item name="subtitleTextColor">?colorOnSurfaceVariant</item>
+        <item name="subtitleCentered">true</item>
         <item name="android:background">@android:color/transparent</item>
         <item name="contentInsetStartWithNavigation">0dp</item>
         <item name="android:layout_height">?actionBarSize</item>
