@@ -49,7 +49,7 @@
     <string name="flash_screen_title">Installation</string>
 
     <!--Superuser-->
-    <string name="su_request_title">Superuser request</string>
+    <string name="su_request_title">Requested for SU</string>
     <string name="touch_filtered_warning">Because an app is obscuring a Superuser request, Magisk can\'t verify your response.</string>
     <string name="deny">Deny</string>
     <string name="prompt">Prompt</string>
@@ -62,8 +62,8 @@
     <string name="twentymin">20 mins</string>
     <string name="thirtymin">30 mins</string>
     <string name="sixtymin">60 mins</string>
-    <string name="su_allow_toast">%1$s was granted Superuser rights</string>
-    <string name="su_deny_toast">%1$s was denied Superuser rights</string>
+    <string name="su_allow_toast">%1$s Authorised!</string>
+    <string name="su_deny_toast">%1$s Rejected!</string>
     <string name="su_snack_grant">Superuser rights of %1$s are granted</string>
     <string name="su_snack_deny">Superuser rights of %1$s are denied</string>
     <string name="su_snack_notif_on">Notifications of %1$s are enabled</string>
@@ -73,7 +73,7 @@
     <string name="su_revoke_title">Revoke?</string>
     <string name="su_revoke_msg">Confirm to revoke %1$s Superuser rights</string>
     <string name="toast">Toast</string>
-    <string name="none">None</string>
+    <string name="none">N/A</string>
     <string name="superuser_toggle_notification">Notifications</string>
     <string name="superuser_toggle_revoke">Revoke</string>
     <string name="superuser_policy_none">No apps have asked for Superuser permission yet.</string>
