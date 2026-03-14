@@ -18,8 +18,9 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import pro.magisk.ui.home.RebootMenu
+import androidx.core.view.MenuProvider
 
-class ModuleFragment : BaseFragment<FragmentModuleMd2Binding>() {
+class ModuleFragment : BaseFragment<FragmentModuleMd2Binding>(), MenuProvider {
 
     override val layoutRes = R.layout.fragment_module_md2
     override val viewModel by viewModel<ModuleViewModel>()

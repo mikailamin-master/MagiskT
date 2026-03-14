@@ -16,8 +16,9 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import pro.magisk.ui.home.RebootMenu
+import androidx.core.view.MenuProvider
 
-class SettingsFragment : BaseFragment<FragmentSettingsMd2Binding>() {
+class SettingsFragment : BaseFragment<FragmentSettingsMd2Binding>(), MenuProvider {
 
     override val layoutRes = R.layout.fragment_settings_md2
     override val viewModel by viewModel<SettingsViewModel>()
