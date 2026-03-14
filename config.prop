@@ -1,0 +1,6 @@
+keyStore=app/app.jks
+keyStorePass=superman
+keyAlias=magisk
+keyPass=superman
+
+version=MT

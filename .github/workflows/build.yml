@@ -1,0 +1,137 @@
+name: Build MagiskT
+
+on:
+    push:
+        branches: [main, test]
+    pull_request:
+        branches: [main, test]
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: write
+
+        strategy:
+            matrix:
+                build_type: [release]
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+                  fetch-depth: 1
+
+            - name: Install dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y ccache python3 python3-pip gh
+
+            - name: Cache pip
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/pip
+                  key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
+                  restore-keys: |
+                      pip-${{ runner.os }}-
+
+            - name: Setup ccache
+              run: |
+                  mkdir -p ~/.ccache
+                  echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
+                  echo "CCACHE_MAXSIZE=3G" >> $GITHUB_ENV
+                  echo "/usr/lib/ccache" >> $GITHUB_PATH
+                  ccache --max-size=3G
+
+            - name: Cache ccache
+              uses: actions/cache@v4
+              with:
+                  path: ~/.ccache
+                  key: ccache-${{ runner.os }}-${{ hashFiles('**/*.c','**/*.cpp','**/*.h') }}
+                  restore-keys: |
+                      ccache-${{ runner.os }}-
+
+            - name: Cache Gradle
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.gradle/caches
+                      ~/.gradle/wrapper
+                  key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties') }}
+                  restore-keys: |
+                      gradle-${{ runner.os }}-
+
+            - name: Setup Java
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: 17
+                  cache: gradle
+
+            - name: Setup environment
+              uses: ./.github/actions/setup
+              with:
+                  is-asset-build: true
+
+            - name: Replace version
+              run: |
+                  if [ "${{ matrix.build_type }}" = "release" ]; then
+                      sed -i 's/^version=.*/version=MTR/' config.prop
+                  else
+                      sed -i 's/^version=.*/version=MTD/' config.prop
+                  fi
+
+            - name: Build Magisk
+              run: |
+                  if [ "${{ matrix.build_type }}" = "release" ]; then
+                      python build.py -vr all
+                  else
+                      python build.py -v all
+                  fi
+
+            - name: Stop Gradle
+              run: ./app/gradlew --stop
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: magisk_${{ matrix.build_type }}
+                  path: out/app-release.apk
+
+            - name: Create GitHub Release
+              env:
+                  GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+              run: |
+                  if [ "${{ matrix.build_type }}" = "release" ]; then
+                      tag="build"
+                      file="out/app-release.apk"
+                  else
+                      tag="canary_build"
+                      file="out/app-debug.apk"
+                  fi
+
+                  commit=$(git rev-parse --short HEAD)
+                  branch=${GITHUB_REF#refs/heads/}
+                  build_time=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+                  body=$(printf "MagiskT automated build\n\nBranch: %s\nCommit: %s\nBuild type: %s\nBuild time: %s\nActor: %s\nRepository: %s\n" \
+                      "$branch" \
+                      "$commit" \
+                      "${{ matrix.build_type }}" \
+                      "$build_time" \
+                      "$GITHUB_ACTOR" \
+                      "$GITHUB_REPOSITORY")
+
+                  gh release delete "$tag" -y || true
+                  git tag -d "$tag" || true
+                  git push origin :refs/tags/$tag || true
+
+                  git tag "$tag"
+                  git push origin "$tag"
+
+                  gh release create "$tag" "$file" \
+                      --title "MagiskT $tag" \
+                      --notes "$body"
