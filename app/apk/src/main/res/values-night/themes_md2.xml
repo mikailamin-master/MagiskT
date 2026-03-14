@@ -8,8 +8,8 @@
         <item name="colorPrimaryVariant">#804EAFF5</item>
         <item name="colorSecondary">#3E78AF</item>
         <item name="colorSecondaryVariant">#803E78AF</item>
-        <item name="colorSurface">#0D0D0D</item>
-        <item name="colorSurfaceVariant">#121212</item>
+        <item name="colorSurface">#121212</item>
+        <item name="colorSurfaceVariant">#292929</item>
         <item name="colorSurfaceSurfaceVariant">#424242</item>
         <item name="colorOnPrimary">#F9F9F9</item>
         <item name="colorOnPrimaryVariant">#D9E6E6E6</item>
