@@ -31,7 +31,7 @@ class SuperuserFragment : BaseFragment<FragmentSuperuserMd2Binding>(), MenuProvi
     override fun onResume() {
         super.onResume()
         binding.superuserList.post {
-            viewModel.load()
+            viewModel.refresh()
         }
     }
 
