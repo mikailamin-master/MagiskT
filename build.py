@@ -411,8 +411,6 @@ def build_apk(module: str):
             f"{module}:assemble{build_type}",
             f"-PconfigPath={props}",
             f"-PabiList={','.join(build_abis.keys())}",
-            "--info",
-            "--stacktrace",
         ],
         env=env,
     )
