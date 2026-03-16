@@ -27,6 +27,11 @@ class SuperuserFragment : BaseFragment<FragmentSuperuserMd2Binding>(), MenuProvi
         super.onStart()
         activity?.title = resources.getString(CoreR.string.superuser)
     }
+    
+    override fun onResume() {
+        super.onResume()
+        viewModel.load()
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

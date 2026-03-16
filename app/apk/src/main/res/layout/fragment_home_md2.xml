@@ -7,10 +7,6 @@
 
         <import type="pro.magisk.core.Info" />
 
-        <import type="pro.magisk.ui.home.DeveloperItem" />
-
-        <import type="pro.magisk.ui.home.IconLink" />
-
         <variable
             name="viewModel"
             type="pro.magisk.ui.home.HomeViewModel" />
@@ -103,7 +99,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/l1"
-                android:layout_marginTop="@dimen/l_25"
+                android:layout_marginTop="@dimen/l_50"
                 android:layout_marginEnd="@dimen/l1"
                 app:layout_constraintTop_toBottomOf="@+id/home_magisk_wrapper" />
 

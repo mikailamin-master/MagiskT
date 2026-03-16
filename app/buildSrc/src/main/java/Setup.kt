@@ -152,7 +152,7 @@ fun Project.setupCoreLib() {
                 include(abiList.map { "$it/libbusybox.so" })
                 onlyIf {
                     if (inputs.sourceFiles.files.size != abiList.size * 6)
-                        throw StopExecutionException("Please build binaries first! (./build.py binary)")
+                        throw StopExecutionException("Please build binaries first! (./build.py native)")
                     true
                 }
             }
