@@ -1,8 +1,6 @@
 
-import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.provideDelegate
 import java.io.File
 import java.util.Properties
 import java.util.Random
@@ -40,6 +38,20 @@ fun Project.rootFile(path: String): File {
     else File(rootProject.file(".."), path)
 }
 
+// Git CLI থেকে commit hash নেওয়ার function
+fun Project.getCommitHash(): String {
+    return try {
+        val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+            .directory(rootProject.rootDir)
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().readText().trim()
+        if (process.waitFor() == 0 && output.isNotEmpty()) output else "unknown"
+    } catch (e: Exception) {
+        "unknown"
+    }
+}
+
 class MagiskPlugin : Plugin<Project> {
     override fun apply(project: Project) = project.applyPlugin()
 
@@ -66,8 +78,13 @@ class MagiskPlugin : Plugin<Project> {
         // Commandline override
         findProperty("abiList")?.let { props.put("abiList", it) }
 
-        val repo = FileRepository(rootFile(".git"))
-        val refId = repo.refDatabase.exactRef("HEAD").objectId
-        commitHash = repo.newObjectReader().abbreviate(refId, 8).name()
+        // Git commit hash using CLI
+        commitHash = getCommitHash()
     }
+}
+
+// Random initialization function
+fun initRandom(dictFile: File) {
+    RANDOM = if (RAND_SEED != 0) Random(RAND_SEED)
+    else Random(System.currentTimeMillis())
 }
