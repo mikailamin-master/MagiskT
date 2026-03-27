@@ -78,11 +78,22 @@ jobs:
 
             - name: Replace version
               run: |
-                  if [ "${{ matrix.build_type }}" = "release" ]; then
-                      sed -i 's/^version=.*/version=MTR/' config.prop
+                  branch=${GITHUB_REF#refs/heads/}
+                  build_type=${{ matrix.build_type }}
+
+                  if [ "$branch" = "main" ] && [ "$build_type" = "release" ]; then
+                      version="MT (D)"
+                  elif [ "$branch" = "main" ]; then
+                      version="MT (R)"
+                  elif [ "$branch" = "test" ] && [ "$build_type" = "release" ]; then
+                      version="MT (D:T)"
+                  elif [ "$branch" = "test" ]; then
+                      version="MT (R:T)"
                   else
-                      sed -i 's/^version=.*/version=MTD/' config.prop
+                      version="MT (UNKNOWN)"
                   fi
+
+                  sed -i "s/^version=.*/version=$version/" config.prop
 
             - name: Build Magisk
               run: |
@@ -105,17 +116,21 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
-                  if [ "${{ matrix.build_type }}" = "release" ]; then
+                  branch=${GITHUB_REF#refs/heads/}
+                  commit=$(git rev-parse --short HEAD)
+                  build_time=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+                  # নির্ধারণ করা ট্যাগ এবং ফাইল
+                  if [ "$branch" = "test" ]; then
+                      tag="test_build"
+                      file="out/app-debug.apk"
+                  elif [ "${{ matrix.build_type }}" = "release" ]; then
                       tag="build"
                       file="out/app-release.apk"
                   else
                       tag="canary_build"
                       file="out/app-debug.apk"
                   fi
-
-                  commit=$(git rev-parse --short HEAD)
-                  branch=${GITHUB_REF#refs/heads/}
-                  build_time=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 
                   body=$(printf "MagiskT automated build\n\nBranch: %s\nCommit: %s\nBuild type: %s\nBuild time: %s\nActor: %s\nRepository: %s\n" \
                       "$branch" \

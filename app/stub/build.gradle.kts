@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.application")
-    id("org.lsposed.lsparanoid")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.lsparanoid)
 }
 
 lsparanoid {
@@ -12,10 +12,10 @@ lsparanoid {
 android {
     namespace = "pro.magisk"
 
-    val canary = false
+    val canary = Config.version.contain(".")
     val base = "https://github.com/mikailamin-master/MagiskT/releases/download/"
     val url = base + "build/app-release.apk"
-    val canaryUrl = base + "canary-${Config.versionCode}/"
+    val canaryUrl = base + "test_build/"
 
     defaultConfig {
         applicationId = "pro.magisk"
