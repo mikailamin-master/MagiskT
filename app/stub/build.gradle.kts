@@ -12,7 +12,7 @@ lsparanoid {
 android {
     namespace = "pro.magisk"
 
-    val canary = Config.version.contain(".")
+    val canary = Config.version.contains(":T")
     val base = "https://github.com/mikailamin-master/MagiskT/releases/download/"
     val url = base + "build/app-release.apk"
     val canaryUrl = base + "test_build/"
