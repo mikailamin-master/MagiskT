@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.pluginsandroid.library)
+    alias(libs.plugins.android.library)
     kotlin("plugin.parcelize")
     alias(libs.plugins.moshix)
     alias(libs.plugins.ksp)
