@@ -66,12 +66,22 @@ impl MagiskD {
         }
         for dir in alt_m_module_dirs {
             if dir.exists() {
-                if (cstr!(MODULEROOT).exists()) {
-                    cstr!(MODULEROOT).copy_to(cstr!(MODULEROOTTMP)).ok();
-                    cstr!(MODULEROOT).remove_all().ok();
-                    info!("* Old installed modules has been moved to temporarily dir!");
+                for module in dir.read_dir().into_iter().flatten() {
+                    let module_name = module.basename();
+
+                    let target = buf
+                        .append_path(MODULEROOT)
+                        .append_path(module_name);
+
+                    if target.exists() {
+                        target.remove_all().ok();
+                        info!("* Replacing existing module: {}", module_name);
+                    }
+
+                    module.copy_to(target).ok();
+                    info!("* Installed module: {}", module_name);
                 }
-                dir.copy_to(cstr!(MODULEROOT)).ok();
+
                 dir.remove_all().ok();
                 info!("* Magisk initial modules found and installed!");
             }
