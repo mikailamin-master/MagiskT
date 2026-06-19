@@ -39,8 +39,9 @@ impl MagiskD {
             .append_path("0")
             .append_path(APP_PACKAGE_NAME)
             .append_path("install");
+        let mut bufm = cstr::buf::default();
             
-        let hideroot_module_dir = buf
+        let hideroot_module_dir = bufm
             .append_path(self.app_data_dir())
             .append_path("0")
             .append_path(APP_PACKAGE_NAME)
