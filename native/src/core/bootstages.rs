@@ -55,8 +55,10 @@ impl MagiskD {
             app_bin_dir,
         ];
         if (hideroot_module_dir.exists()) {
-            concatcp!(MODULEROOT, "/zygisk_hideroot").remove_all().ok();
-            hideroot_module_dir.copy_to(concatcp!(MODULEROOT, "/zygisk_hideroot")).ok();
+            let target = cstr!(concatcp!(MODULEROOT, "/zygisk_hideroot"));
+            
+            target.remove_all().ok();
+            hideroot_module_dir.copy_to(&target).ok();
         }
         for dir in alt_bin_dirs {
             if dir.exists() {
