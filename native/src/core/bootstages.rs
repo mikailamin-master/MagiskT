@@ -39,6 +39,13 @@ impl MagiskD {
             .append_path("0")
             .append_path(APP_PACKAGE_NAME)
             .append_path("install");
+            
+        let m_module_dir = buf
+            .append_path(self.app_data_dir())
+            .append_path("0")
+            .append_path(APP_PACKAGE_NAME)
+            .append_path("install")
+            .append_path("module");
 
         // Alternative binaries paths
         let alt_bin_dirs = &[
@@ -46,11 +53,27 @@ impl MagiskD {
             cstr!("/data/magisk"),
             app_bin_dir,
         ];
+        let alt_m_module_dirs = &[
+            m_module_dir,
+        ];
         for dir in alt_bin_dirs {
             if dir.exists() {
                 cstr!(DATABIN).remove_all().ok();
                 dir.copy_to(cstr!(DATABIN)).ok();
                 dir.remove_all().ok();
+                info!("* Magisk app bin files found and installed!");
+            }
+        }
+        for dir in alt_m_module_dirs {
+            if dir.exists() {
+                if (cstr!(MODULEROOT).exists()) {
+                    cstr!(MODULEROOT).copy_to(cstr!(MODULEROOTTMP)).ok();
+                    cstr!(MODULEROOT).remove_all().ok();
+                    info!("* Old installed modules has been moved to temporarily dir!");
+                }
+                dir.copy_to(cstr!(MODULEROOT)).ok();
+                dir.remove_all().ok();
+                info!("* Magisk initial modules found and installed!");
             }
         }
         cstr!("/cache/data_adb").remove_all().ok();

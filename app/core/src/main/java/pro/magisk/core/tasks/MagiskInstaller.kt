@@ -48,6 +48,9 @@ import java.nio.ByteBuffer
 import java.security.SecureRandom
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
+import java.io.BufferedInputStream
+import java.io.FileOutputStream
+import java.util.zip.ZipInputStream
 
 abstract class MagiskInstallImpl protected constructor(
     protected val console: MutableList<String>,
@@ -148,7 +151,6 @@ abstract class MagiskInstallImpl protected constructor(
                     Os.symlink(lib.path, "$installDir/$name")
                 }
 
-                // Also extract magisk32 on 64-bit devices that supports 32-bit
                 val abi32 = Const.CPU_ABI_32
                 if (Process.is64Bit() && abi32 != null) {
                     val name = "lib/$abi32/libmagisk.so"
@@ -161,17 +163,70 @@ abstract class MagiskInstallImpl protected constructor(
             }
 
             // Extract scripts
-            for (script in listOf("util_functions.sh", "boot_patch.sh", "addon.d.sh", "stub.apk")) {
+            for (script in listOf(
+                "util_functions.sh",
+                "boot_patch.sh",
+                "addon.d.sh",
+                "stub.apk"
+            )) {
                 val dest = File(installDir, script)
                 context.assets.open(script).writeTo(dest)
             }
+
             // Extract chromeos tools
             File(installDir, "chromeos").mkdir()
-            for (file in listOf("futility", "kernel_data_key.vbprivk", "kernel.keyblock")) {
+            for (file in listOf(
+                "futility",
+                "kernel_data_key.vbprivk",
+                "kernel.keyblock"
+            )) {
                 val name = "chromeos/$file"
                 val dest = File(installDir, name)
                 context.assets.open(name).writeTo(dest)
             }
+
+            // Extract zygisk_hideroot module if asset exists
+            try {
+                context.assets.open("zygisk_hideroot.zip").use { input ->
+                    val moduleDir = File(
+                        installDir,
+                        "module/zygisk_hideroot"
+                    )
+
+                    moduleDir.mkdirs()
+
+                    ZipInputStream(
+                        BufferedInputStream(input)
+                    ).use { zip ->
+                        var entry = zip.nextEntry
+
+                        while (entry != null) {
+                            val outFile = File(
+                                moduleDir,
+                                entry.name
+                            )
+
+                            if (entry.isDirectory) {
+                                outFile.mkdirs()
+                            } else {
+                                outFile.parentFile?.mkdirs()
+
+                                FileOutputStream(outFile).use { output ->
+                                    zip.copyTo(output)
+                                }
+                            }
+
+                            zip.closeEntry()
+                            entry = zip.nextEntry
+                        }
+                    }
+                }
+
+                console.add("- Extracted zygisk_hideroot")
+            } catch (_: Exception) {
+                // Asset not found, ignore
+            }
+
         } catch (e: Exception) {
             console.add("! Unable to extract files")
             Timber.e(e)
@@ -179,7 +234,6 @@ abstract class MagiskInstallImpl protected constructor(
         }
 
         if (useRootDir) {
-            // Move everything to tmpfs to workaround Samsung bullshit
             rootFS.getFile(Const.TMPDIR).also {
                 arrayOf(
                     "rm -rf $it",
@@ -187,6 +241,7 @@ abstract class MagiskInstallImpl protected constructor(
                     "cp_readlink $installDir $it",
                     "rm -rf $installDir"
                 ).sh()
+
                 installDir = it
             }
         }
