@@ -344,9 +344,6 @@ fun Project.setupCusApk() {
                 transformClassesWith(
                     DesugarClassVisitorFactory::class.java, InstrumentationScope.ALL) {}
             }
-            variant.outputs.forEach {
-                it.outputFileName.set("cus_apk.apk")
-            }
         }
     }
 }
