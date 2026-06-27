@@ -1,7 +1,7 @@
 <resources>
 
     <!--Sections-->
-    <string name="modules">Modules</string>
+    <string name="modules">Plugins</string>
     <string name="superuser">SuperSU</string>
     <string name="logs">Logs</string>
     <string name="settings">Settings</string>
@@ -28,7 +28,7 @@
     <string name="home_latest_version">Latest</string>
     <string name="invalid_update_channel">Invalid update channel</string>
     <string name="uninstall_magisk_title">Uninstall Magisk</string>
-    <string name="uninstall_magisk_msg">All modules will be disabled/removed!\nRoot will be removed!\nAny internal storage unencrypted through the use of Magisk will be re-encrypted!</string>
+    <string name="uninstall_magisk_msg">All plugins will be disabled/removed!\nRoot will be removed!\nAny internal storage unencrypted through the use of Magisk will be re-encrypted!</string>
 
     <!--Install-->
     <string name="keep_force_encryption">Preserve force encryption</string>
@@ -96,7 +96,7 @@
     <string name="hide_filter_hint">Filter by name</string>
     <string name="hide_search">Search</string>
 
-    <!--Module-->
+    <!--plugin-->
     <string name="no_info_provided">(No info provided)</string>
     <string name="reboot_userspace">Soft reboot</string>
     <string name="reboot_recovery">Reboot to Recovery</string>
@@ -110,11 +110,11 @@
     <string name="module_state_restore">Restore</string>
     <string name="module_action_install_external">Install from storage</string>
     <string name="update_available">Update available</string>
-    <string name="suspend_text_riru">Module suspended because %1$s is enabled</string>
-    <string name="suspend_text_zygisk">Module suspended because %1$s isn\'t enabled</string>
-    <string name="zygisk_module_unloaded">Zygisk module not loaded due to incompatibility</string>
-    <string name="module_empty">No module installed</string>
-    <string name="confirm_install">Install module %1$s?</string>
+    <string name="suspend_text_riru">Plugin suspended because %1$s is enabled</string>
+    <string name="suspend_text_zygisk">Plugin suspended because %1$s isn\'t enabled</string>
+    <string name="zygisk_module_unloaded">Zygisk plugin not loaded due to incompatibility</string>
+    <string name="module_empty">No plugin installed</string>
+    <string name="confirm_install">Install plugin %1$s?</string>
     <string name="confirm_install_title">Install confirmation</string>
 
     <!--Settings-->
@@ -146,7 +146,7 @@
     <string name="settings_denylist_config_summary">Select the processes to be included on the denylist</string>
     <string name="settings_hosts_title">Systemless hosts</string>
     <string name="settings_hosts_summary">Systemless hosts support for ad blocking apps</string>
-    <string name="settings_hosts_toast">Added systemless hosts module</string>
+    <string name="settings_hosts_toast">Added systemless hosts plugin</string>
     <string name="settings_app_name_hint">New name</string>
     <string name="settings_app_name_helper">App will be repackaged with this name</string>
     <string name="settings_app_name_error">Invalid format</string>
