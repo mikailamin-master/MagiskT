@@ -40,6 +40,23 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
+        <pro.magisk.widget.ConcealableBottomNavigationView
+            android:id="@+id/main_navigation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:fitsSystemWindows="false"
+            android:paddingBottom="0dp"
+            app:fitsSystemWindowsInsets="start|end|bottom"
+            app:itemHorizontalTranslationEnabled="false"
+            app:itemIconTint="@color/color_menu_tint"
+            app:itemRippleColor="?colorPrimary"
+            app:itemTextAppearanceActive="@style/AppearanceFoundation.Tiny.Bold"
+            app:itemTextAppearanceInactive="@style/AppearanceFoundation.Tiny.Bold"
+            app:itemTextColor="@color/color_menu_tint"
+            app:labelVisibilityMode="labeled"
+            app:menu="@menu/menu_bottom_nav" />
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </layout>
