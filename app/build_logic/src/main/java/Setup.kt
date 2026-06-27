@@ -319,6 +319,36 @@ fun Project.setupMainApk() {
     }
 }
 
+fun Project.setupCusApk() {
+    setupAppCommon()
+
+    androidApp {
+        namespace = "pro.magisk"
+
+        defaultConfig {
+            applicationId = "pro.magisk"
+            vectorDrawables.useSupportLibrary = true
+            versionName = Config.version
+            versionCode = Config.versionCode
+            ndk {
+                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64", "riscv64")
+                debugSymbolLevel = "FULL"
+            }
+        }
+    }
+
+    androidComponents {
+        onVariants { variant ->
+            variant.instrumentation.apply {
+                setAsmFramesComputationMode(COMPUTE_FRAMES_FOR_INSTRUMENTED_METHODS)
+                transformClassesWith(
+                    DesugarClassVisitorFactory::class.java, InstrumentationScope.ALL) {}
+            }
+        }
+    }
+}
+
+
 const val LSPOSED_DOWNLOAD_URL =
     "https://github.com/LSPosed/LSPosed/releases/download/v1.9.2/LSPosed-v1.9.2-7024-zygisk-release.zip"
 const val LSPOSED_CHECKSUM =
