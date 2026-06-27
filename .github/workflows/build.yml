@@ -105,10 +105,18 @@ jobs:
               run: ls -a out
                   
             - name: Upload cus apk
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: magisk_${{ matrix.build_type }}
-                  path: out/*
+                  path: app/cus_apk/build/outputs
+                  compression-level: 9
+                  
+            - name: Upload output
+              uses: actions/upload-artifact@v7
+              with:
+                  name: magisk_${{ matrix.build_type }}
+                  path: out
+                  compression-level: 9
 
             - name: Create GitHub Release
               env:
