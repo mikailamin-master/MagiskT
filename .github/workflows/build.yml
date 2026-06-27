@@ -100,12 +100,15 @@ jobs:
               with:
                   name: magisk_${{ matrix.build_type }}
                   path: out/app-release.apk
+            
+            - name: for test
+              run: ls -a out
                   
             - name: Upload cus apk
               uses: actions/upload-artifact@v4
               with:
                   name: magisk_${{ matrix.build_type }}
-                  path: out/
+                  path: out/*
 
             - name: Create GitHub Release
               env:
