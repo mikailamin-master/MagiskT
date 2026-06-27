@@ -11,8 +11,7 @@ jobs:
     build:
         runs-on: ubuntu-latest
 
-        permissions:
-            contents: write
+        permissions: write-all
 
         strategy:
             matrix:
@@ -100,34 +99,25 @@ jobs:
               with:
                   name: magisk_${{ matrix.build_type }}
                   path: out/app-release.apk
-            
-            - name: for test
-              run: ls -a out
                   
-            - name: Upload cus apk
-              uses: actions/upload-artifact@v7
+            - name: Upload custom apk
+              uses: actions/upload-artifact@v4
               with:
                   name: magisk_${{ matrix.build_type }}
-                  path: app/cus_apk/build/outputs
-                  compression-level: 9
-                  
-            - name: Upload output
-              uses: actions/upload-artifact@v7
-              with:
-                  name: magisk_${{ matrix.build_type }}
-                  path: out/
-                  compression-level: 9
+                  path: out/cus_app-release.apk
 
             - name: Create GitHub Release
               env:
-                  GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   if [ "${{ matrix.build_type }}" = "release" ]; then
                       tag="build"
                       file="out/app-release.apk"
+                      cus_file="out/cus_app-release.apk"
                   else
                       tag="canary_build"
                       file="out/app-debug.apk"
+                      cus_file="out/cus_app-debug.apk"
                   fi
 
                   commit=$(git rev-parse --short HEAD)
@@ -149,6 +139,6 @@ jobs:
                   git tag "$tag"
                   git push origin "$tag"
 
-                  gh release create "$tag" "$file" \
+                  gh release create "$tag" "$file" "$cus_file" \
                       --title "MagiskT $tag" \
                       --notes "$body"
